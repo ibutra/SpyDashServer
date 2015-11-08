@@ -1,0 +1,2 @@
+# SpyDashServer
+Server for SpyDash
