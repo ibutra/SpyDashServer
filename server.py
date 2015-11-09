@@ -36,7 +36,7 @@ class SpyDashServer(object):
         coro = self.loop.create_server(self.factory, port=8080)
         server = self.loop.run_until_complete(coro)
 
-        self.loop.call_soon(self.updatefunction)
+        self.loop.call_soon(self.updateFunction)
 
         self.loop.run_forever()
 
@@ -44,13 +44,22 @@ class SpyDashServer(object):
         self.loop.stop()
         self.loop.close()
 
-    def dispatch(self, msg):
+    def dispatch(self, msg, client):
         """
         Dispatch received message to applicable module or handle directly
 
         :param msg: The received json message
         """
-        pass
+        data = msg["data"]
+        target = msg["module"]
+        if target == "system":
+            self.handleSystemMessage(data, client)
+        else:
+            try:
+                m = [module for module in self.modules if module.__class__.__name__ == target][0]
+                m.dispatch(data, client)
+            except IndexError:
+                pass
 
     def broadcast(self, data):
         """
@@ -58,18 +67,39 @@ class SpyDashServer(object):
 
         :param data: The data to broadcast. This will be wrapped in a JSON
         """
-        #TODO: build the JSON
+        # TODO: build the JSON
         if self.factory is not None:
             self.factory.broadcast(data)
 
-    def updatefunction(self):
+    def send(self, data, client):
+        """
+        Sends data to the given client
+        :param data: The data to send
+        :param client: The intended recipient
+        """
+        payload = {"module":"system", "data":data}
+        payload = json.dumps(payload, ensure_ascii=False)
+        client.sendMessage(payload.encode("utf-8"), isBinary=False)
+
+    def updateFunction(self):
         """
         This function calls itself through the loop every second and calls the update functions of al modules
         """
         for m in self.modules:
             if hasattr(m, "update"):
                 self.loop.create_task(m.update())
-        self.loop.call_later(1, self.updatefunction)
+        self.loop.call_later(1, self.updateFunction)
+
+    def handleSystemMessage(self, data, client):
+        """
+        Handle all system messages
+        :param data: The data part of the received json
+        """
+        command = data["command"]
+        if command == "getModules":
+            data = {"modules": [m.__class__.__name__ for m in self.modules]}
+            self.send(data, client)
+
 
 
 class SpyDashServerProtocol(WebSocketServerProtocol):
@@ -87,8 +117,11 @@ class SpyDashServerProtocol(WebSocketServerProtocol):
         self.factory.unregister(self)
 
     def onMessage(self, payload, isBinary):
-        #self.factory.spydashserver.dispatch(json.loads(payload.decode('utf-8')))
-        self.factory.broadcast(payload, isBinary)
+        try:
+            self.factory.spydashserver.dispatch(json.loads(payload.decode('utf-8')), self)
+        except json.JSONDecodeError:
+            print("Failed to decode message")
+
 
 
 class SpyDashServerFactory(WebSocketServerFactory):
@@ -119,6 +152,5 @@ class SpyDashServerFactory(WebSocketServerFactory):
 
 if __name__ == "__main__":
     server = SpyDashServer()
-    loop = asyncio.get_event_loop()
     server.start()
 
