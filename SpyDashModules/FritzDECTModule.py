@@ -1,3 +1,4 @@
+import asyncio
 
 
 class FritzDECTModule(object):
@@ -5,8 +6,8 @@ class FritzDECTModule(object):
         self.server = server
         pass
 
-    def run(self):
-        pass
+    async def update(self):
+        print("Hi")
 
     def dispatch(self, msg):
         pass
