@@ -83,7 +83,7 @@ class SpyDashServer(object):
 
     def updateFunction(self):
         """
-        This function calls itself through the loop every second and calls the update functions of al modules
+        This function calls itself through the asyncio loop every second and calls the update functions of all modules
         """
         for m in self.modules:
             if hasattr(m, "update"):
@@ -99,7 +99,6 @@ class SpyDashServer(object):
         if command == "getModules":
             data = {"modules": [m.__class__.__name__ for m in self.modules]}
             self.send(data, client)
-
 
 
 class SpyDashServerProtocol(WebSocketServerProtocol):
@@ -121,7 +120,6 @@ class SpyDashServerProtocol(WebSocketServerProtocol):
             self.factory.spydashserver.dispatch(json.loads(payload.decode('utf-8')), self)
         except json.JSONDecodeError:
             print("Failed to decode message")
-
 
 
 class SpyDashServerFactory(WebSocketServerFactory):
