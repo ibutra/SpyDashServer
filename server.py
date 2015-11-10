@@ -19,14 +19,13 @@ class SpyDashServer(object):
         Find and load modules in the modules package
         """
         self.wsplugin = None
-        self.modules = []
+        self.modules = {}
 
         config = json.load(open("config"))
         importlib.invalidate_caches()
         for m in config["modules"]:
             mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
-            if hasattr(mclass, "dispatch"):
-                self.modules.append(mclass(self))
+            self.modules[m] = mclass(self)
         self.updater = BackgroundTask(1, self.update_modules)
 
     def start(self):
@@ -37,11 +36,14 @@ class SpyDashServer(object):
         self.wsplugin.subscribe()
         cherrypy.tools.websocket = WebSocketTool()
 
+        # cherrypy.config.update({"log.access_file": "access.log",
+        #                         "log.error_file": "error.log"})
+
+        cherrypy.engine.subscribe("receive", self.receive)
+
         self.updater.start()
-        cherrypy.quickstart(self, "/", config={"/ws": {
-            "tools.websocket.on": True,
-            "tools.websocket.handler_cls": WebSocketHandler
-        }})
+        config = {"/ws": {"tools.websocket.on": True, "tools.websocket.handler_cls": WebSocketHandler}}
+        cherrypy.quickstart(self, "/", config=config)
 
     def broadcast(self, data):
         """
@@ -51,9 +53,30 @@ class SpyDashServer(object):
         self.wsplugin.broadcast(data)
 
     def update_modules(self):
-        for module in self.modules:
+        for module in self.modules.values():
             if hasattr(module, "update"):
                 module.update()
+
+    def receive(self, client, message):
+        try:
+            payload = json.loads(str(message))
+            module_name = payload["module"]
+            data = payload["data"]
+            if module_name == "system":
+                self.handle_system_message(client, data)
+            else:
+                if module_name in self.modules:
+                    module = self.modules[module_name]
+                    if hasattr(module, "receive"):
+                        module.receive(client, data)
+        except json.JSONDecodeError:
+            pass
+
+    def handle_system_message(self, client, data):
+        if data["command"] == "getModules":
+            response = {"module": "system",
+                        "data": [module.__class__.__name__ for module in self.modules]}
+            client.send(json.dumps(response))
 
     @cherrypy.expose
     def index(self):
@@ -61,7 +84,6 @@ class SpyDashServer(object):
 
     @cherrypy.expose
     def ws(self):
-        handler = cherrypy.request.ws_handler
         pass
 
 
@@ -70,7 +92,10 @@ class WebSocketHandler(WebSocket):
     This class will handle the interaction with a single client
     """
     def received_message(self, message):
-        pass
+        try:
+            cherrypy.engine.publish("receive", self, message)
+        except json.JSONDecodeError:
+            pass
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ class FritzDECT(object):
         pass
 
     def update(self):
-        self.server.broadcast("test")
+        pass
 
-    def dispatch(self, msg, client):
-        print(msg)
+    def receive(self, client, data):
+        print(data)
