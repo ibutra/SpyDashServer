@@ -4,8 +4,8 @@ class FritzDECT(object):
         self.server = server
         pass
 
-    # async def update(self):
-    #     print("Hi")
+    async def update(self):
+        self.server.broadcast(self.__class__.__name__, ["hi","ho"])
 
     def dispatch(self, msg, client):
         print(msg)
