@@ -1,7 +1,7 @@
 import cherrypy
-import jinja2
+from cherrypy.process.plugins import BackgroundTask
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
-from ws4py.websocket import WebSocket, EchoWebSocket
+from ws4py.websocket import WebSocket
 import importlib
 import json
 import SpyDashModules
@@ -18,7 +18,7 @@ class SpyDashServer(object):
         """
         Find and load modules in the modules package
         """
-        self.broadcast = None
+        self.wsplugin = None
         self.modules = []
 
         config = json.load(open("config"))
@@ -27,16 +27,20 @@ class SpyDashServer(object):
             mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
             if hasattr(mclass, "dispatch"):
                 self.modules.append(mclass(self))
+        self.updater = BackgroundTask(1, self.update_modules)
 
     def start(self):
         """
         Start the server. This blocks
         """
-        self.broadcast = WebSocketPlugin(cherrypy.engine).subscribe()
+        self.wsplugin = WebSocketPlugin(cherrypy.engine)
+        self.wsplugin.subscribe()
         cherrypy.tools.websocket = WebSocketTool()
+
+        self.updater.start()
         cherrypy.quickstart(self, "/", config={"/ws": {
             "tools.websocket.on": True,
-            "tools.websocket.handler_cls": EchoWebSocket
+            "tools.websocket.handler_cls": WebSocketHandler
         }})
 
     def broadcast(self, data):
@@ -44,7 +48,12 @@ class SpyDashServer(object):
         Broadcast a message to all connected clients
         :param data: Data to broadcast
         """
-        self.broadcast.broadcast(data)
+        self.wsplugin.broadcast(data)
+
+    def update_modules(self):
+        for module in self.modules:
+            if hasattr(module, "update"):
+                module.update()
 
     @cherrypy.expose
     def index(self):
