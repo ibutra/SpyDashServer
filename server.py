@@ -11,7 +11,7 @@ class SpyDashServer(object):
     """
     Server class for the SpyDash
 
-    This class encapsules all the functionality for the SpyDash server.
+    This class encapsulates all the functionality for the SpyDash server.
     It loads available modules and handles communication over Websockets
     """
     def __init__(self):
@@ -50,12 +50,18 @@ class SpyDashServer(object):
         Broadcast a message to all connected clients
         :param data: Data to broadcast
         """
-        self.wsplugin.broadcast(data)
+        if self.wsplugin is not None:
+            self.wsplugin.broadcast(data)
 
     def update_modules(self):
         for module in self.modules.values():
             if hasattr(module, "update"):
                 module.update()
+
+    def get_module(self, name):
+        if name in self.modules:
+            return self.modules[name]
+        return False
 
     def receive(self, client, message):
         try:
@@ -92,10 +98,7 @@ class WebSocketHandler(WebSocket):
     This class will handle the interaction with a single client
     """
     def received_message(self, message):
-        try:
-            cherrypy.engine.publish("receive", self, message)
-        except json.JSONDecodeError:
-            pass
+        cherrypy.engine.publish("receive", self, message)
 
 
 if __name__ == "__main__":
