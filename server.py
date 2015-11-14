@@ -51,18 +51,23 @@ class SpyDashServer(object):
         Broadcast a message to all connected clients
         :param data: Data to broadcast
         """
-        if self.wsplugin is not None:
+        try:
             self.wsplugin.broadcast(data)
+        except (AttributeError, TypeError):
+            pass
 
     def update_modules(self):
         for module in self.modules.values():
-            if hasattr(module, "update"):
+            try:
                 module.update()
+            except (AttributeError, TypeError):
+                pass
 
     def get_module(self, name):
-        if name in self.modules:
+        try:
             return self.modules[name]
-        return False
+        except KeyError:
+            pass
 
     def receive(self, client, message):
         try:
@@ -73,8 +78,10 @@ class SpyDashServer(object):
                 self.handle_system_message(client, data)
             else:
                 module = self.get_module(module_name)
-                if hasattr(module, "receive"):
+                try:
                     module.receive(client, data)
+                except (AttributeError, TypeError):
+                    pass
         except json.JSONDecodeError:
             pass
 
@@ -92,7 +99,6 @@ class SpyDashServer(object):
             return module
         else:
             return vpath
-
 
     @cherrypy.expose
     def index(self):

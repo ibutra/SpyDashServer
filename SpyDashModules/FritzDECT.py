@@ -1,5 +1,3 @@
-import cherrypy
-
 
 class FritzDECT(object):
     def __init__(self, server):
