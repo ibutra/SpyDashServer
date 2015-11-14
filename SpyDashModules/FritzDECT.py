@@ -10,7 +10,3 @@ class FritzDECT(object):
 
     def receive(self, client, data):
         print(data)
-
-    @cherrypy.expose
-    def index(self):
-        return "jo"

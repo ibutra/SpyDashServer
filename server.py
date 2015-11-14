@@ -2,6 +2,7 @@ import cherrypy
 from cherrypy.process.plugins import BackgroundTask
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
+from collections import deque
 import importlib
 import json
 import SpyDashModules
@@ -71,18 +72,27 @@ class SpyDashServer(object):
             if module_name == "system":
                 self.handle_system_message(client, data)
             else:
-                if module_name in self.modules:
-                    module = self.modules[module_name]
-                    if hasattr(module, "receive"):
-                        module.receive(client, data)
+                module = self.get_module(module_name)
+                if hasattr(module, "receive"):
+                    module.receive(client, data)
         except json.JSONDecodeError:
             pass
 
     def handle_system_message(self, client, data):
         if data["command"] == "getModules":
             response = {"module": "system",
-                        "data": [module.__class__.__name__ for module in self.modules]}
+                        "data": [name for name in self.modules.values()]}
             client.send(json.dumps(response))
+
+    def _cp_dispatch(self, vpath):
+        path = deque(vpath)
+        moduleName = path.popleft()
+        module = self.get_module(moduleName)
+        if module is not None:
+            return module
+        else:
+            return vpath
+
 
     @cherrypy.expose
     def index(self):
