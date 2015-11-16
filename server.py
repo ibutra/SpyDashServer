@@ -6,6 +6,7 @@ from collections import deque
 import importlib
 import json
 import SpyDashModules
+from Settings import Settings
 
 
 class SpyDashServer(object):
@@ -21,10 +22,10 @@ class SpyDashServer(object):
         """
         self.wsplugin = None
         self.modules = {}
-
-        config = json.load(open("config"))
+        self.settings = Settings()
+        self.settings.loadsettings("settings.cfg")
         importlib.invalidate_caches()
-        for m in config["modules"]:
+        for m in self.settings.get_modules():
             mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
             self.modules[m] = mclass(self)
         self.updater = BackgroundTask(5, self.update_modules)
