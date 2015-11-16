@@ -73,14 +73,12 @@ class SpyDashServer(object):
             pass
 
     def receive(self, client, message):
-        payload = None
         try:
             payload = json.loads(str(message))
         except json.JSONDecodeError:
             return
         module_name = payload["module"]
         data = payload["data"]
-        answer = None
         if module_name == "system":
             answer = self.handle_system_message(client, data)
         else:

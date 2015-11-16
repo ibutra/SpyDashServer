@@ -1,5 +1,6 @@
 import requests
 
+
 class Weather(object):
     def __init__(self, server):
         self.server = server
@@ -8,6 +9,7 @@ class Weather(object):
         self.city = ""
         self.unit = "metric"
         self.lang = "de"
+        self.lastMessage = {}
         try:
             self.apiKey = settings["key"]
             self.city = settings["city"]
@@ -28,6 +30,8 @@ class Weather(object):
             winddirection = r["wind"]["deg"]
             cloudcoverage = r["clouds"]["all"]
             msg = {"description": description, "windspeed": windspeed, "winddirection": winddirection, "cloudcoverage": cloudcoverage}
-            self.server.broadcast(msg, self.__class__.__name__)
+            if msg != self.lastMessage:
+                self.server.broadcast(msg, self.__class__.__name__)
+                self.lastMessage = msg
         except KeyError:
             pass
