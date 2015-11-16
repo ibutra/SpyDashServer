@@ -47,15 +47,17 @@ class SpyDashServer(object):
         config = {"/ws": {"tools.websocket.on": True, "tools.websocket.handler_cls": WebSocketHandler}}
         cherrypy.quickstart(self, "/", config=config)
 
-    def broadcast(self, data):
+    def broadcast(self, data, module):
         """
         Broadcast a message to all connected clients
         :param data: Data to broadcast
         """
+        msg = {"module": module, "data": data}
         try:
-            self.wsplugin.broadcast(data)
-        except (AttributeError, TypeError):
-            pass
+            msg = json.dumps(msg, ensure_ascii=False)
+        except TypeError:
+            return
+        self.wsplugin.broadcast(msg)
 
     def update_modules(self):
         for module in self.modules.values():
@@ -71,26 +73,33 @@ class SpyDashServer(object):
             pass
 
     def receive(self, client, message):
+        payload = None
         try:
             payload = json.loads(str(message))
-            module_name = payload["module"]
-            data = payload["data"]
-            if module_name == "system":
-                self.handle_system_message(client, data)
-            else:
-                module = self.get_module(module_name)
-                try:
-                    module.receive(client, data)
-                except (AttributeError, TypeError):
-                    pass
         except json.JSONDecodeError:
-            pass
+            return
+        module_name = payload["module"]
+        data = payload["data"]
+        answer = None
+        if module_name == "system":
+            answer = self.handle_system_message(client, data)
+        else:
+            module = self.get_module(module_name)
+            try:
+                answer = module.receive(data)
+            except (AttributeError, TypeError):
+                return
+        if answer is not None:
+            try:
+                msg = json.dumps({"module": module_name, "data": answer})
+                client.send(msg)
+            except TypeError:
+                return
 
     def handle_system_message(self, client, data):
         if data["command"] == "getModules":
-            response = {"module": "system",
-                        "data": [name for name in self.modules.values()]}
-            client.send(json.dumps(response))
+            response = [name for name in self.modules.values()]
+            return response
 
     def _cp_dispatch(self, vpath):
         path = deque(vpath)
