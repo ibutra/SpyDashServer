@@ -28,7 +28,7 @@ class SpyDashServer(object):
         for m in self.settings.get_modules():
             mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
             self.modules[m] = mclass(self)
-        self.updater = BackgroundTask(5, self.update_modules)
+        self.updater = BackgroundTask(10, self.update_modules)
 
     def start(self):
         """
