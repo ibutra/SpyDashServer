@@ -27,7 +27,7 @@ class SpyDashServer(object):
         for m in config["modules"]:
             mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
             self.modules[m] = mclass(self)
-        self.updater = BackgroundTask(1, self.update_modules)
+        self.updater = BackgroundTask(5, self.update_modules)
 
     def start(self):
         """
@@ -93,8 +93,8 @@ class SpyDashServer(object):
 
     def _cp_dispatch(self, vpath):
         path = deque(vpath)
-        moduleName = path.popleft()
-        module = self.get_module(moduleName)
+        modulename = path.popleft()
+        module = self.get_module(modulename)
         if module is not None:
             return module
         else:

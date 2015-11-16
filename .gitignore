@@ -58,3 +58,6 @@ target/
 
 #pycharm
 .idea
+
+#Settings
+settings.cfg
