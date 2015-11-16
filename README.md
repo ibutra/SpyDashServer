@@ -13,7 +13,7 @@ It consists of general Server settings and per module settings
     ],
     "module_settings": {
         "Weather": {
-            "key": "<key>",
+            "key": "<openweathermap-key>",
             "city": "Aachen",
             "unit": "metric",
             "lang": "de"
