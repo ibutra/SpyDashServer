@@ -21,3 +21,10 @@ It consists of general Server settings and per module settings
     }
 }
 ```
+
+#Dependencies
+Current dependencies are:
+- cherrypy
+- ws4py
+- requests (Weather module)
+
