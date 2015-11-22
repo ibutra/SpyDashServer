@@ -14,7 +14,7 @@ class Weather(object):
         try:
             self.apiKey = settings["key"]
         except KeyError:
-            delattr(self, "update")
+            delattr(self, "update")  # We remove our update function if we don't have an api key because we obviously can't update in this cas
         try:
             self.city = settings["city"]
             self.unit = settings["unit"]
