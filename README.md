@@ -8,8 +8,8 @@ It consists of general Server settings and per module settings
 ```
 {
     "modules": [
-        "FritzDECT",
-        "Weather"
+        "fritzdect",
+        "weather"
     ],
     "module_settings": {
         "Weather": {

@@ -6,7 +6,7 @@ from collections import deque
 import importlib
 import json
 import SpyDashModules
-from Settings import Settings
+from settings import Settings
 
 
 class SpyDashServer(object):
