@@ -114,24 +114,24 @@ class SpyDashServer(object):
             payload = json.loads(str(message))
             module_name = payload["module"]
             command = payload["command"]
-            data = payload["data"]
             if module_name == "system":
                 attribute = getattr(self, command)
-                if attribute.socketexposed is True:
-                    answer = attribute(data)
             else:
                 module = self.get_module(module_name)
                 attribute = getattr(module, command)
-                if attribute.socketexposed is True:
-                    answer = attribute(data)
+            if attribute.socketexposed is True:
+                try:
+                    answer = attribute(payload["data"])
+                except (KeyError, TypeError):
+                    answer = attribute()
             if answer is not None:
                 msg = json.dumps({"module": module_name, "data": answer}, ensure_ascii=False)
                 client.send(msg)
-        except (json.JSONDecodeError, TypeError, AttributeError):
+        except (json.JSONDecodeError, TypeError, AttributeError, KeyError):
             return
 
     @socketexpose
-    def get_modules(self, data):
+    def get_modules(self):
         response = [name for name in self.modules.keys()]
         return response
 

@@ -58,5 +58,5 @@ class Weather(object):
             pass
 
     @spydashserver.socketexpose
-    def get_weather(self, data):
+    def get_weather(self):
         return self.lastMessage
