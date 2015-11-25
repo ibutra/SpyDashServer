@@ -89,7 +89,7 @@ class SpyDashServer(object):
                 return
         if answer is not None:
             try:
-                msg = json.dumps({"module": module_name, "data": answer})
+                msg = json.dumps({"module": module_name, "data": answer}, ensure_ascii=False)
                 client.send(msg)
             except TypeError:
                 return
