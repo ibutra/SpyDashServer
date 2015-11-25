@@ -6,6 +6,7 @@ from collections import deque
 import importlib
 import json
 import SpyDashModules
+import inspect
 from settings import Settings
 
 
@@ -13,6 +14,14 @@ def socketexpose(func):
     """Decorator to expose functions over websocket"""
     func.socketexposed = True
     return func
+
+
+def updatetask(interval):
+    def decorator(func):
+        func.interval = interval
+        func.updater = True
+        return func
+    return decorator
 
 
 class SpyDashServer(object):
@@ -34,7 +43,6 @@ class SpyDashServer(object):
         for m in self.settings.get_modules():
             mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
             self.modules[m] = mclass(self)
-        self.updater = BackgroundTask(10, self.update_modules)
 
     def start(self):
         """
@@ -49,7 +57,8 @@ class SpyDashServer(object):
 
         cherrypy.engine.subscribe("receive", self.receive)
 
-        self.updater.start()
+        self.start_updater()
+
         config = {"/ws": {"tools.websocket.on": True, "tools.websocket.handler_cls": WebSocketHandler}}
         cherrypy.quickstart(self, "/", config=config)
 
@@ -65,11 +74,19 @@ class SpyDashServer(object):
             return
         self.wsplugin.broadcast(msg)
 
-    def update_modules(self):
+    def start_updater(self):
+        def predicate(x):
+            try:
+                return x.updater
+            except (TypeError, AttributeError):
+                return False
+
         for module in self.modules.values():
             try:
-                module.update()
-            except (AttributeError, TypeError):
+                method = next(iter(inspect.getmembers(module, predicate)))
+                method = method[1]
+                BackgroundTask(method.interval, method).start()
+            except (TypeError, AttributeError, StopIteration):
                 pass
 
     def get_module(self, name):

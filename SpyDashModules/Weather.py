@@ -23,7 +23,9 @@ class Weather(object):
         except KeyError:
             pass
 
-    def update(self):
+    @server.updatetask(20)
+    def weatherupdate(self):
+        print("run")
         arguments = {"q": self.city, "appid": self.apiKey, "units": self.unit, "lang": self.lang}
         r = requests.get("http://api.openweathermap.org/data/2.5/weather", params=arguments)
         try:
