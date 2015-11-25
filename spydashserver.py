@@ -43,7 +43,7 @@ class SpyDashServer(object):
         importlib.invalidate_caches()
         for m in self.settings.get_modules():
             mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
-            self.modules[m] = mclass(server = self)
+            self.modules[m] = mclass(server=self)
 
     def start(self):
         """
@@ -124,9 +124,9 @@ class SpyDashServer(object):
                     answer = attribute(payload["data"])
                 except (KeyError, TypeError):
                     answer = attribute()
-            if answer is not None:
-                msg = json.dumps({"module": module_name, "data": answer}, ensure_ascii=False)
-                client.send(msg)
+                if answer is not None:
+                    msg = json.dumps({"module": module_name, "data": answer}, ensure_ascii=False)
+                    client.send(msg)
         except (json.JSONDecodeError, TypeError, AttributeError, KeyError):
             return
 
