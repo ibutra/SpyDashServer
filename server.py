@@ -80,7 +80,7 @@ class SpyDashServer(object):
         module_name = payload["module"]
         data = payload["data"]
         if module_name == "system":
-            answer = self.handle_system_message(client, data)
+            answer = self.handle_system_message(data)
         else:
             module = self.get_module(module_name)
             try:
@@ -94,7 +94,7 @@ class SpyDashServer(object):
             except TypeError:
                 return
 
-    def handle_system_message(self, client, data):
+    def handle_system_message(self, data):
         if data["command"] == "getModules":
             response = [name for name in self.modules.values()]
             return response
