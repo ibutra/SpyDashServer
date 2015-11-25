@@ -16,7 +16,7 @@ def socketexpose(func):
     return func
 
 
-def updatetask(interval):
+def updatetask(interval=10):
     def decorator(func):
         func.interval = interval
         func.updater = True
@@ -93,7 +93,7 @@ class SpyDashServer(object):
 
     def cancel_updater(self, functions):
         """
-        Cancel given updater functions
+        Cancel given updater functions or function
         :param functions: The updater functions to cancel, this can either be a set of functions to cancel or a singel function
         """
         try:
