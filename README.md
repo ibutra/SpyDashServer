@@ -23,7 +23,7 @@ It consists of general Server settings and per module settings
 ```
 
 # Modules
-Modules must implement a *__init__()* function which accepts a server reference to the SpyDashServer.
+Modules must implement an *__init__()* function which accepts a server reference to the SpyDashServer with the *server* argument.
 
 Modules can implement functions that are exposed over the websocket bus. To expose a function add the
 ```python
