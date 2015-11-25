@@ -121,7 +121,7 @@ class SpyDashServer(object):
                 attribute = getattr(module, command)
             if attribute.socketexposed is True:
                 try:
-                    answer = attribute(payload["data"])
+                    answer = attribute(**payload["data"])
                 except (KeyError, TypeError):
                     answer = attribute()
                 if answer is not None:
