@@ -14,17 +14,16 @@ class Weather(object):
         self.lastMessage = {}
         try:
             self.apiKey = settings["key"]
-        except KeyError:
-            delattr(self, "update")  # We remove our update function if we don't have an api key because we obviously can't update in this cas
-        try:
             self.city = settings["city"]
             self.unit = settings["unit"]
             self.lang = settings["lang"]
         except KeyError:
             pass
 
-    @spydashserver.updatetask(20)
+    @spydashserver.updatetask(1)
     def weatherupdate(self):
+        if self.apiKey is None or len(self.apiKey) == 0:
+            return
         arguments = {"q": self.city, "appid": self.apiKey, "units": self.unit, "lang": self.lang}
         r = requests.get("http://api.openweathermap.org/data/2.5/weather", params=arguments)
         try:
