@@ -20,7 +20,7 @@ class Weather(object):
         except KeyError:
             pass
 
-    @spydashserver.updatetask(1)
+    @spydashserver.updatetask(20)
     def weatherupdate(self):
         if self.apiKey is None or len(self.apiKey) == 0:
             return
