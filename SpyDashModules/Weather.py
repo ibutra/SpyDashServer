@@ -1,4 +1,5 @@
 import requests
+import server
 from datetime import datetime, timedelta
 
 
@@ -54,3 +55,7 @@ class Weather(object):
                 self.lastMessage = msg
         except KeyError:
             pass
+
+    @server.socketexpose
+    def get_weather(self, data):
+        return self.lastMessage

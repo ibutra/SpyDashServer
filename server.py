@@ -9,6 +9,12 @@ import SpyDashModules
 from settings import Settings
 
 
+def socketexpose(func):
+    """Decorator to expose functions over websocket"""
+    func.socketexposed = True
+    return func
+
+
 class SpyDashServer(object):
     """
     Server class for the SpyDash
@@ -75,29 +81,28 @@ class SpyDashServer(object):
     def receive(self, client, message):
         try:
             payload = json.loads(str(message))
-        except json.JSONDecodeError:
-            return
-        module_name = payload["module"]
-        data = payload["data"]
-        if module_name == "system":
-            answer = self.handle_system_message(data)
-        else:
-            module = self.get_module(module_name)
-            try:
-                answer = module.receive(data)
-            except (AttributeError, TypeError):
-                return
-        if answer is not None:
-            try:
+            module_name = payload["module"]
+            command = payload["command"]
+            data = payload["data"]
+            if module_name == "system":
+                attribute = getattr(self, command)
+                if attribute.socketexposed is True:
+                    answer = attribute(data)
+            else:
+                module = self.get_module(module_name)
+                attribute = getattr(module, command)
+                if attribute.socketexposed is True:
+                    answer = attribute(data)
+            if answer is not None:
                 msg = json.dumps({"module": module_name, "data": answer}, ensure_ascii=False)
                 client.send(msg)
-            except TypeError:
-                return
+        except (json.JSONDecodeError, TypeError, AttributeError):
+            return
 
-    def handle_system_message(self, data):
-        if data["command"] == "getModules":
-            response = [name for name in self.modules.values()]
-            return response
+    @socketexpose
+    def get_modules(self, data):
+        response = [name for name in self.modules.keys()]
+        return response
 
     def _cp_dispatch(self, vpath):
         path = deque(vpath)
