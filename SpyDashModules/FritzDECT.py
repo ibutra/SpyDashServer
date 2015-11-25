@@ -5,6 +5,3 @@ class FritzDECT(object):
 
     def update(self):
         pass
-
-    def receive(self, data):
-        print(data)

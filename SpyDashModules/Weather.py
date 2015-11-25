@@ -1,5 +1,5 @@
 import requests
-import server
+import spydashserver
 from datetime import datetime, timedelta
 
 
@@ -23,7 +23,7 @@ class Weather(object):
         except KeyError:
             pass
 
-    @server.updatetask(20)
+    @spydashserver.updatetask(20)
     def weatherupdate(self):
         print("run")
         arguments = {"q": self.city, "appid": self.apiKey, "units": self.unit, "lang": self.lang}
@@ -58,6 +58,6 @@ class Weather(object):
         except KeyError:
             pass
 
-    @server.socketexpose
+    @spydashserver.socketexpose
     def get_weather(self, data):
         return self.lastMessage
