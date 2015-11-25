@@ -23,22 +23,28 @@ It consists of general Server settings and per module settings
 ```
 
 # Modules
+Modules must implement a *__init__()* function which accepts a server reference to the SpyDashServer.
+
 Modules can implement functions that are exposed over the websocket bus. To expose a function add the
 ```python
 @spydashserver.socketexpose
 ```
 decorator.
-In addition modules can implement an update function which get's called by a given interval:
+
+In addition modules can implement update functions which get called with a given interval:
 ```python
 @spydashserver.updatetask(10)
 ```
-The argument of the function decorator is the interval in seconds.
+The argument of the function decorator is the interval in seconds which defaults to 10 seconds.
+To cancel an updater call *cancel_updater* on the server with the function as argument.
+To cancel multiple updaters at once call the *cancel_updater* function with a set of updater functions to cancel.
+
 Furthermore modules can expose http endpoint over cherrypy. This is done by the known cherrypy decorator:
 ```python
 @cherrypy.expose
 ```
 
-#Dependencies
+# Dependencies
 Current non standart lib dependencies are:
 - cherrypy
 - ws4py

@@ -43,7 +43,7 @@ class SpyDashServer(object):
         importlib.invalidate_caches()
         for m in self.settings.get_modules():
             mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
-            self.modules[m] = mclass(self)
+            self.modules[m] = mclass(server = self)
 
     def start(self):
         """
