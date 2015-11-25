@@ -23,6 +23,7 @@ class Weather(object):
     @spydashserver.updatetask(20)
     def weatherupdate(self):
         if self.apiKey is None or len(self.apiKey) == 0:
+            self.server.cancel_updater(self.weatherupdate)
             return
         arguments = {"q": self.city, "appid": self.apiKey, "units": self.unit, "lang": self.lang}
         r = requests.get("http://api.openweathermap.org/data/2.5/weather", params=arguments)

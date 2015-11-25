@@ -37,6 +37,7 @@ class SpyDashServer(object):
         """
         self.wsplugin = None
         self.modules = {}
+        self.worker = set()
         self.settings = Settings()
         self.settings.loadsettings("settings.cfg")
         importlib.invalidate_caches()
@@ -83,11 +84,24 @@ class SpyDashServer(object):
 
         for module in self.modules.values():
             try:
-                method = next(iter(inspect.getmembers(module, predicate)))
-                method = method[1]
-                BackgroundTask(method.interval, method).start()
+                for name, method in inspect.getmembers(module, predicate):
+                    worker = BackgroundTask(method.interval, method)
+                    self.worker.add(worker)
+                    worker.start()
             except (TypeError, AttributeError, StopIteration):
                 pass
+
+    def cancel_updater(self, functions):
+        """
+        Cancel given updater functions
+        :param functions: The updater functions to cancel, this can either be a set of functions to cancel or a singel function
+        """
+        try:
+            workers = [worker for worker in self.worker if worker.function in functions]
+        except TypeError:
+            workers = [worker for worker in self.worker if worker.function == functions]
+        for worker in workers:
+            worker.cancel()
 
     def get_module(self, name):
         try:
