@@ -61,3 +61,6 @@ target/
 
 #Settings
 settings.cfg
+
+#certs
+*.pem
