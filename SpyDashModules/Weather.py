@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 class Weather(object):
     def __init__(self, server):
         self.server = server
-        settings = server.settings.get_module_settings(self.__class__.__name__)
+        settings = server.settings.get_module_settings(self)
         self.apiKey = ""
         self.city = "Aachen"
         self.unit = "metric"
@@ -52,7 +52,7 @@ class Weather(object):
             except KeyError:
                 pass
             if msg != self.lastMessage:
-                self.server.broadcast(msg, self.__class__.__name__)
+                self.server.broadcast(msg, self)
                 self.lastMessage = msg
         except KeyError:
             pass

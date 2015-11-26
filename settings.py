@@ -21,6 +21,6 @@ class Settings(object):
 
     def get_module_settings(self, module):
         try:
-            return self.settings["module_settings"][module]
+            return self.settings["module_settings"][module.__class__.name]
         except KeyError:
             return {}

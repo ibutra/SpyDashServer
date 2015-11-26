@@ -67,8 +67,9 @@ class SpyDashServer(object):
         """
         Broadcast a message to all connected clients
         :param data: Data to broadcast
+        :param module: reference to the calling module
         """
-        msg = {"module": module, "data": data}
+        msg = {"module": module.__class__.name, "data": data}
         try:
             msg = json.dumps(msg, ensure_ascii=False)
         except TypeError:
