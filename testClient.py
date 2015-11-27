@@ -10,7 +10,7 @@ class TestClient(WebSocketClient):
             "data": {}
         }
         self.send(json.dumps(msg, ensure_ascii=False))
-        msg["module"] = "Weather"
+        msg["module"] = "weather"
         msg["command"] = "get_weather"
         self.send(json.dumps(msg, ensure_ascii=False))
 

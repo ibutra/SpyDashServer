@@ -8,10 +8,8 @@ class Settings(object):
     def loadsettings(self, filename):
         try:
             self.settings = json.load(open(filename))
-            return True
         except json.JSONDecodeError:
-            print("Could not open settings file")
-            return False
+            pass
 
     def get_modules(self):
         try:
@@ -21,6 +19,6 @@ class Settings(object):
 
     def get_module_settings(self, module):
         try:
-            return self.settings["module_settings"][module.__class__.__name__]
+            return self.settings["module_settings"][module.label]
         except KeyError:
             return {}

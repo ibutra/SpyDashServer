@@ -6,9 +6,8 @@ import cherrypy
 from cherrypy.process.plugins import BackgroundTask
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
-from .modules import socketexpose
+from .plugins import socketexpose, PluginConfig
 from spydashserver.settings import Settings
-import spydashmodules
 
 
 class SpyDashServer(object):
@@ -29,8 +28,14 @@ class SpyDashServer(object):
         self.settings.loadsettings("settings.cfg")
         importlib.invalidate_caches()
         for m in self.settings.get_modules():
-            mclass = getattr(importlib.import_module("." + m, "SpyDashModules"), m)
-            self.modules[m] = mclass(server=self)
+            try:
+                config = PluginConfig.load(m)
+            except (ImportError, AttributeError):
+                continue
+            # Load the models and adapt them
+            # TODO: implement
+            # Now load the module itself
+            self.modules[config.label] = config.module(server=self, label=config.label)
 
     def start(self):
         """
@@ -56,7 +61,7 @@ class SpyDashServer(object):
         :param data: Data to broadcast
         :param module: reference to the calling module
         """
-        msg = {"module": module.__class__.__name__, "data": data}
+        msg = {"module": module.label, "data": data}
         try:
             msg = json.dumps(msg, ensure_ascii=False)
         except TypeError:

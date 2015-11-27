@@ -1,11 +1,12 @@
 import requests
-from spydashserver.modules import updatetask, socketexpose
+from spydashserver.plugins import updatetask, socketexpose
 from datetime import datetime, timedelta
 
 
 class Weather(object):
-    def __init__(self, server):
+    def __init__(self, server, label):
         self.server = server
+        self.label = label
         settings = server.settings.get_module_settings(self)
         self.apiKey = ""
         self.city = "Aachen"
