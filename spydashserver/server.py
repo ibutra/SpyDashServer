@@ -1,27 +1,14 @@
+import importlib
+import inspect
+import json
+from collections import deque
 import cherrypy
 from cherrypy.process.plugins import BackgroundTask
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
-from collections import deque
-import importlib
-import json
-import SpyDashModules
-import inspect
-from settings import Settings
-
-
-def socketexpose(func):
-    """Decorator to expose functions over websocket"""
-    func.socketexposed = True
-    return func
-
-
-def updatetask(interval=10):
-    def decorator(func):
-        func.interval = interval
-        func.updater = True
-        return func
-    return decorator
+from .modules import socketexpose
+from spydashserver.settings import Settings
+import spydashmodules
 
 
 class SpyDashServer(object):
@@ -69,7 +56,7 @@ class SpyDashServer(object):
         :param data: Data to broadcast
         :param module: reference to the calling module
         """
-        msg = {"module": module.__class__.name, "data": data}
+        msg = {"module": module.__class__.__name__, "data": data}
         try:
             msg = json.dumps(msg, ensure_ascii=False)
         except TypeError:
@@ -160,9 +147,3 @@ class WebSocketHandler(WebSocket):
     """
     def received_message(self, message):
         cherrypy.engine.publish("receive", self, message)
-
-
-if __name__ == "__main__":
-    server = SpyDashServer()
-    server.start()
-

@@ -1,5 +1,5 @@
 import requests
-import spydashserver
+from spydashserver.modules import updatetask, socketexpose
 from datetime import datetime, timedelta
 
 
@@ -20,7 +20,7 @@ class Weather(object):
         except KeyError:
             pass
 
-    @spydashserver.updatetask(20)
+    @updatetask(20)
     def weatherupdate(self):
         if self.apiKey is None or len(self.apiKey) == 0:
             self.server.cancel_updater(self.weatherupdate)
@@ -57,6 +57,6 @@ class Weather(object):
         except KeyError:
             pass
 
-    @spydashserver.socketexpose
+    @socketexpose
     def get_weather(self):
         return self.lastMessage
