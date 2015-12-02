@@ -1,4 +1,3 @@
-import importlib
 import inspect
 import json
 from collections import deque
@@ -26,7 +25,6 @@ class SpyDashServer(object):
         self.worker = set()
         self.settings = Settings()
         self.settings.loadsettings("settings.cfg")
-        importlib.invalidate_caches()
         for m in self.settings.get_modules():
             try:
                 config = PluginConfig.load(m)
