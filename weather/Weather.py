@@ -1,5 +1,5 @@
 import requests
-from spydashserver.plugins import updatetask, socketexpose
+from spydashserver.decorators import updatetask, socketexpose
 from datetime import datetime, timedelta
 
 

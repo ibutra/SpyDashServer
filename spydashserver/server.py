@@ -1,4 +1,3 @@
-import importlib
 import inspect
 import json
 from collections import deque
@@ -6,8 +5,8 @@ import cherrypy
 from cherrypy.process.plugins import BackgroundTask
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
-from .plugins import socketexpose, PluginConfig
-from spydashserver.settings import Settings
+from .plugins import PluginManager
+from .decorators import socketexpose
 
 
 class SpyDashServer(object):
@@ -22,20 +21,11 @@ class SpyDashServer(object):
         Find and load modules in the modules package
         """
         self.wsplugin = None
-        self.modules = {}
+        self.pluginmanager = PluginManager()
         self.worker = set()
-        self.settings = Settings()
-        self.settings.loadsettings("settings.cfg")
-        importlib.invalidate_caches()
-        for m in self.settings.get_modules():
-            try:
-                config = PluginConfig.load(m)
-            except (ImportError, AttributeError):
-                continue
-            # Load the models and adapt them
-            # TODO: implement
-            # Now load the module itself
-            self.modules[config.label] = config.module(server=self, label=config.label)
+
+        self.pluginmanager.load_configs()
+        self.pluginmanager.load_plugin_roots(self)
 
     def start(self):
         """
@@ -75,9 +65,9 @@ class SpyDashServer(object):
             except (TypeError, AttributeError):
                 return False
 
-        for module in self.modules.values():
+        for plugin in self.pluginmanager.get_instances():
             try:
-                for name, method in inspect.getmembers(module, predicate):
+                for name, method in inspect.getmembers(plugin, predicate):
                     worker = BackgroundTask(method.interval, method)
                     self.worker.add(worker)
                     worker.start()
@@ -96,42 +86,36 @@ class SpyDashServer(object):
         for worker in workers:
             worker.cancel()
 
-    def get_module(self, name):
-        try:
-            return self.modules[name]
-        except KeyError:
-            pass
-
     def receive(self, client, message):
         try:
             payload = json.loads(str(message))
-            module_name = payload["module"]
+            plugin_name = payload["module"]
             command = payload["command"]
-            if module_name == "system":
+            if plugin_name == "system":
                 attribute = getattr(self, command)
             else:
-                module = self.get_module(module_name)
-                attribute = getattr(module, command)
+                plugin = self.pluginmanager.get_plugin_for_label(plugin_name)
+                attribute = getattr(plugin, command)
             if attribute.socketexposed is True:
                 try:
                     answer = attribute(**payload["data"])
                 except (KeyError, TypeError):
                     answer = attribute()
                 if answer is not None:
-                    msg = json.dumps({"module": module_name, "data": answer}, ensure_ascii=False)
+                    msg = json.dumps({"module": plugin_name, "data": answer}, ensure_ascii=False)
                     client.send(msg)
         except (json.JSONDecodeError, TypeError, AttributeError, KeyError):
             return
 
     @socketexpose
     def get_modules(self):
-        response = [name for name in self.modules.keys()]
+        response = [name for name in self.pluginmanager.get_labels()]
         return response
 
     def _cp_dispatch(self, vpath):
         path = deque(vpath)
         modulename = path.popleft()
-        module = self.get_module(modulename)
+        module = self.pluginmanager.get_plugin_for_label(modulename)
         if module is not None:
             return module
         else:
