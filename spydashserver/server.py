@@ -23,7 +23,6 @@ class SpyDashServer(object):
         self.wsplugin = None
         self.pluginmanager = PluginManager()
         self.worker = set()
-
         self.pluginmanager.load_configs()
         self.pluginmanager.load_plugin_roots(self)
 
