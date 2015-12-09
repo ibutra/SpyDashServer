@@ -5,8 +5,9 @@ import cherrypy
 from cherrypy.process.plugins import BackgroundTask
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
-from .plugins import PluginManager
+from .plugins import pluginmanager
 from .decorators import socketexpose
+
 
 
 class SpyDashServer(object):
@@ -21,10 +22,9 @@ class SpyDashServer(object):
         Find and load modules in the modules package
         """
         self.wsplugin = None
-        self.pluginmanager = PluginManager()
         self.worker = set()
-        self.pluginmanager.load_configs()
-        self.pluginmanager.load_plugin_roots(self)
+        pluginmanager.load_configs()
+        pluginmanager.load_plugin_roots(self)
 
     def start(self):
         """
@@ -64,7 +64,7 @@ class SpyDashServer(object):
             except (TypeError, AttributeError):
                 return False
 
-        for plugin in self.pluginmanager.get_instances():
+        for plugin in pluginmanager.get_instances():
             try:
                 for name, method in inspect.getmembers(plugin, predicate):
                     worker = BackgroundTask(method.interval, method)
@@ -93,7 +93,7 @@ class SpyDashServer(object):
             if plugin_name == "system":
                 attribute = getattr(self, command)
             else:
-                plugin = self.pluginmanager.get_plugin_for_label(plugin_name)
+                plugin = pluginmanager.get_plugin_for_label(plugin_name)
                 attribute = getattr(plugin, command)
             if attribute.socketexposed is True:
                 try:
@@ -108,13 +108,13 @@ class SpyDashServer(object):
 
     @socketexpose
     def get_modules(self):
-        response = [name for name in self.pluginmanager.get_labels()]
+        response = [name for name in pluginmanager.get_labels()]
         return response
 
     def _cp_dispatch(self, vpath):
         path = deque(vpath)
         modulename = path.popleft()
-        module = self.pluginmanager.get_plugin_for_label(modulename)
+        module = pluginmanager.get_plugin_for_label(modulename)
         if module is not None:
             return module
         else:

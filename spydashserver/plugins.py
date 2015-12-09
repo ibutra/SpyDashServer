@@ -45,7 +45,7 @@ class PluginManager(object):
     def get_instances(self):
         return [config.instance for config in self.configs]
 
-    def get_containing_plugin(self, object_name):
+    def get_containing_pluginconfig(self, object_name):
         for plugin_config in self.configs:
             if object_name.startswith(plugin_config.name):
                 return plugin_config
@@ -55,3 +55,5 @@ class PluginManager(object):
 
     def get_labels(self):
         return [config.label for config in self.configs]
+
+pluginmanager = PluginManager()
