@@ -69,8 +69,5 @@ To define models subclass the *BaseModel* class from *spydashserver.datbase*. No
 spydashserver to inject a prefix into the table name.
 
 # Dependencies
-Current non standart lib dependencies are:
-- cherrypy
-- ws4py
-- requests (Weather module)
+[(see requirements.txt)](requirements.txt)
 
