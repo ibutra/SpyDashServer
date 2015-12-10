@@ -24,12 +24,16 @@ class SpyDashServer(object):
         self.wsplugin = None
         self.worker = set()
         pluginmanager.load_configs()
-        pluginmanager.load_plugin_roots(self)
 
     def start(self):
         """
         Start the server. This blocks
         """
+
+        # Setting up plugins
+        pluginmanager.load_models()
+        pluginmanager.load_plugin_roots(self)
+
         self.wsplugin = WebSocketPlugin(cherrypy.engine)
         self.wsplugin.subscribe()
         cherrypy.tools.websocket = WebSocketTool()

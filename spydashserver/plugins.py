@@ -36,16 +36,26 @@ class PluginManager(object):
     def load_configs(self):
         for name in plugins:
             plugin = import_module(name)
-            self.configs.append(plugin)
+            self.configs.append(plugin.plugin_config)
 
     def load_plugin_roots(self, server):
         for plugin_config in self.configs:
             plugin_config.instance = plugin_config.root(server=server)
 
+    def load_models(self):
+        for plugin_config in self.configs:
+            #try:
+            if plugin_config.models:
+                import_module(plugin_config.models)
+            #except(AttributeError, TypeError):
+             #   print("SHIT")
+             #   pass
+
     def get_instances(self):
         return [config.instance for config in self.configs]
 
-    def get_containing_pluginconfig(self, object_name):
+    def get_containing_pluginconfig(self, object):
+        object_name = object.__module__
         for plugin_config in self.configs:
             if object_name.startswith(plugin_config.name):
                 return plugin_config

@@ -1,22 +1,29 @@
-from peewee import BaseModel, with_metaclass
+import peewee
 from peewee import *
-from .plugins import pluginmanager
+from spydashserver.plugins import pluginmanager
+import re
 
-__all__ = [
-    'ModelBase',
+__all__ = peewee.__all__ + [
+    'BaseModel'
 ]
 
-database = SqliteDatabase('test.db')  #TODO: Load config for database
+database = SqliteDatabase('test.db')  # TODO: Load config for database
 
 
-class ModelMeta(BaseModel):
-    def __new__(cls, *args, **kwargs):
-        cls = super(ModelMeta, cls).__new__(cls, *args, **kwargs)
-        prefix = pluginmanager.get_containing_pluginconfig(cls).label
-        cls._meta.db_table = prefix + "_" + cls._meta.db_table
-        return cls
+# Prefix the tables for plugins with their label
+def get_table_name(model):
+    try:
+        prefix = pluginmanager.get_containing_pluginconfig(model).label + "_"
+    except AttributeError:
+        prefix = ""
+    table_name = prefix + re.sub('[^\w]+', '_', model.__name__.lower())
+    return table_name
 
 
-class ModelBase(with_metaclass(ModelMeta)):
+# The Base for all models used by plugins
+class BaseModel(Model):
     class Meta:
         database = database
+        db_table_func = get_table_name
+
+

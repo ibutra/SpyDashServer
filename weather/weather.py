@@ -1,13 +1,13 @@
 import requests
 from spydashserver.decorators import updatetask, socketexpose
 from datetime import datetime, timedelta
+from spydashserver.settings import plugin_settings
 
 
 class Weather(object):
-    def __init__(self, server, label):
+    def __init__(self, server):
         self.server = server
-        self.label = label
-        settings = server.settings.get_module_settings(self)
+        settings = plugin_settings["weather"]
         self.apiKey = ""
         self.city = "Aachen"
         self.unit = "metric"
