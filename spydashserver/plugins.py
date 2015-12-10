@@ -7,7 +7,7 @@ class PluginConfig(object):
         # Python path to the Plugin e.g. 'weather'
         self.name = name
 
-        # The root class of this plugin (NOT an instance of it)
+        # The python path to the root class of this plugin relative to name
         self.root = root
 
         # The label must be unique and will be used as prefix for database tables and identifier
@@ -35,15 +35,19 @@ class PluginManager(object):
 
     def load_configs(self):
         for name in plugins:
-            plugin = import_module(name)
-            self.configs.append(plugin.plugin_config)
+            self.configs.append(PluginConfig.load(name))
 
     def load_plugin_roots(self, server):
         for plugin_config in self.configs:
-            try: # Try to pass a reference to server
-                plugin_config.instance = plugin_config.root(server=server)
+            module = import_module(plugin_config.name + '.' + plugin_config.root[:plugin_config.root.rfind(".")])
+            try:
+                root = getattr(module, plugin_config.root[plugin_config.root.rfind('.') + 1:])
             except AttributeError:
-                plugin_config.instance = plugin_config.root()
+                continue
+            try:  # Try to pass a reference to server
+                plugin_config.instance = root(server=server)
+            except TypeError:
+                plugin_config.instance = root()
 
     def load_models(self):
         for plugin_config in self.configs:
@@ -60,6 +64,9 @@ class PluginManager(object):
         for plugin_config in self.configs:
             if object_name.startswith(plugin_config.name):
                 return plugin_config
+
+    def get_containing_pluginlabel(self, object):
+        return self.get_containing_pluginconfig(object).label
 
     def get_plugin_for_label(self, label):
         return next(config.instance for config in self.configs if config.label == label)

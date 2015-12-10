@@ -64,3 +64,6 @@ settings.cfg
 
 #certs
 *.pem
+
+#test db
+test.db

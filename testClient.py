@@ -9,9 +9,15 @@ class TestClient(WebSocketClient):
             "command": "get_modules",
             "data": {}
         }
-        self.send(json.dumps(msg, ensure_ascii=False))
+        # self.send(json.dumps(msg, ensure_ascii=False))
         msg["module"] = "weather"
         msg["command"] = "get_weather"
+        # self.send(json.dumps(msg, ensure_ascii=False))
+        msg["module"] = "notes"
+        msg["command"] = "remove_note"
+        msg["data"] = {'id': 1}
+        self.send(json.dumps(msg, ensure_ascii=False))
+        msg["command"] = "get_notes"
         self.send(json.dumps(msg, ensure_ascii=False))
 
     def received_message(self, message):

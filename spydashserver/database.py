@@ -27,3 +27,10 @@ class BaseModel(Model):
         db_table_func = get_table_name
 
 
+def get_all_subclasses(cls):
+    return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in get_all_subclasses(s)]
+
+
+# Create non existing tables
+def create_tables():
+    database.create_tables(get_all_subclasses(BaseModel), True)

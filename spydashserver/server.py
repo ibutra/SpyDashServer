@@ -7,6 +7,7 @@ from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
 from .plugins import pluginmanager
 from .decorators import socketexpose
+from .database import create_tables
 
 
 class SpyDashServer(object):
@@ -32,6 +33,7 @@ class SpyDashServer(object):
         # Setting up plugins
         pluginmanager.load_models()
         pluginmanager.load_plugin_roots(self)
+        create_tables()
 
         self.wsplugin = WebSocketPlugin(cherrypy.engine)
         self.wsplugin.subscribe()
