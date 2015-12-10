@@ -9,7 +9,6 @@ from .plugins import pluginmanager
 from .decorators import socketexpose
 
 
-
 class SpyDashServer(object):
     """
     Server class for the SpyDash
@@ -54,7 +53,11 @@ class SpyDashServer(object):
         :param data: Data to broadcast
         :param module: reference to the calling module
         """
-        msg = {"module": module.label, "data": data}
+        try:
+            label = pluginmanager.get_containing_pluginconfig(module).label
+        except AttributeError:
+            return
+        msg = {"module": label, "data": data}
         try:
             msg = json.dumps(msg, ensure_ascii=False)
         except TypeError:

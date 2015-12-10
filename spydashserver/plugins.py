@@ -40,16 +40,17 @@ class PluginManager(object):
 
     def load_plugin_roots(self, server):
         for plugin_config in self.configs:
-            plugin_config.instance = plugin_config.root(server=server)
+            try: # Try to pass a reference to server
+                plugin_config.instance = plugin_config.root(server=server)
+            except AttributeError:
+                plugin_config.instance = plugin_config.root()
 
     def load_models(self):
         for plugin_config in self.configs:
-            #try:
-            if plugin_config.models:
+            try:
                 import_module(plugin_config.models)
-            #except(AttributeError, TypeError):
-             #   print("SHIT")
-             #   pass
+            except AttributeError:
+                pass
 
     def get_instances(self):
         return [config.instance for config in self.configs]
